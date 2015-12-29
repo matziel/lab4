@@ -1,4 +1,6 @@
 ﻿##  Wzorowane na przykładzie Rona Zacharskiego
+from numpy import median, absolute
+from math import sqrt
 
 class Classifier:
 
@@ -35,18 +37,33 @@ class Classifier:
 
     def getMedian(self, alist):
         """TODO: zwraca medianę listy"""
-
-        return 0
+        med = median(alist)
+        return med
         
 
-    def getAbsoluteStandardDeviation(self, alist, median):
+    def getAbsoluteStandardDeviation(self, alist, med):
         """TODO: zwraca absolutne odchylenie standardowe listy od mediany"""
-        return 0
+        asdev = sum([absolute(x - med) for x in alist])/len(alist)
+        return asdev
 
     def normalizeColumn(self, columnNumber):
         """TODO: mając dany nr kolumny w self.data, dokonuje normalizacji wg Modified Standard Score"""
-
+        col = [v[1][columnNumber] for v in self.data]
+        med = self.getMedian(col)
+        asdev = self.getAbsoluteStandardDeviation(col, med)
+        self.medianAndDeviation.append((med, asdev))
+        
+        for v in self.data:
+            v[1][columnNumber] = (v[1][columnNumber] - med) / asdev
         pass
+
+    def normalizeVector(self, v):
+        """Znormalizuj podany wektor mając daną medianę i odchylenie standardowe dla każdej kolumny"""
+        vector = list(v)
+        for i in range(len(vector)):
+            (median, asd) = self.medianAndDeviation[i]
+            vector[i] = (vector[i] - median) / asd
+        return vector
 
 
     def manhattan(self, vector1, vector2):
@@ -55,9 +72,9 @@ class Classifier:
 
 
     def nearestNeighbor(self, itemVector):
-        """return nearest neighbor to itemVector"""
-        
-        return ((0, ("TODO: Zwróc najbliższego sąsiada", [0], [])))
+        """return nearest neighbor to itemVector"""    
+        return min([ (self.manhattan(itemVector, item[1]), item)
+        for item in self.data])
     
     def classify(self, itemVector):
         """Return class we think item Vector is in"""
@@ -178,14 +195,13 @@ def test(training_filename, test_filename):
         print("%s  %12s  %s" % (prefix, theClass, line))
     print("%4.2f%% correct" % (numCorrect * 100/ len(lines)))
         
-
 ##
 ##  Przykłady użycia
-#  test('athletesTrainingSet.txt', 'athletesTestSet.txt')
-#  test("irisTrainingSet.data", "irisTestSet.data")
-#  test("mpgTrainingSet.txt", "mpgTestSet.txt")
+test('athletesTrainingSet.txt', 'athletesTestSet.txt')
+#test("irisTrainingSet.data", "irisTestSet.data")
+#test("mpgTrainingSet.txt", "mpgTestSet.txt")
 
 testMedianAndASD()
-# testNormalization()
-# testClassifier()
+testNormalization()
+testClassifier()
 
